@@ -1,59 +1,50 @@
 from flask import Flask, request, jsonify
-import openai
-import os
+from flask_cors import CORS
+import requests
 import time
+import os
+import openai
 
 app = Flask(__name__)
+CORS(app)  # ✅ Enable CORS for all origins
 
-# Set your OpenAI API key as an environment variable in Render
-openai.api_key = os.environ.get("OPENAI_API_KEY")
-
-@app.route("/")
-def index():
-    return "🧙‍♂️ Lizard Wizard Backend is alive."
+openai.api_key = os.getenv("OPENAI_API_KEY")  # Make sure this is set on Render
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    start_time = time.time()
     print("⏱ Received request, starting processing...")
+    data = request.get_json()
+    image_url = data.get("imageUrl")
+    if not image_url:
+        return jsonify({"error": "No image URL provided"}), 400
 
+    print(f"📥 Downloading image from: {image_url}")
     try:
-        data = request.get_json()
-        image_url = data.get("imageUrl")
-        if not image_url:
-            print("❌ No imageUrl provided.")
-            return jsonify({"error": "No imageUrl provided"}), 400
+        image_response = requests.get(image_url)
+        image_bytes = image_response.content
+    except Exception as e:
+        print(f"❌ Error downloading image: {e}")
+        return jsonify({"error": "Failed to download image"}), 500
 
-        print(f"📥 Downloading image from: {image_url}")
-        print("🔁 Sending image to OpenAI...")
-
+    print("🔁 Sending image to OpenAI...")
+    try:
         response = openai.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4-vision-preview",  # or "gpt-4o" if you want newer model
             messages=[
-                {
-                    "role": "system",
-                    "content": "You are a helpful assistant that identifies cards from the board game Lizard Wizard."
-                },
                 {
                     "role": "user",
                     "content": [
-                        { "type": "text", "text": "What is the name and school of this card?" },
+                        { "type": "text", "text": "What is the name and school of this Lizard Wizard card?" },
                         { "type": "image_url", "image_url": { "url": image_url } }
                     ]
                 }
             ],
-            max_tokens=200
+            max_tokens=300
         )
-
         result = response.choices[0].message.content
-        elapsed = round(time.time() - start_time, 2)
-        print(f"✅ OpenAI response received in {elapsed}s. Sending back to client.")
-
-        return jsonify({"prediction": result})
+        print("✅ OpenAI response received, sending back to client.")
+        return jsonify({ "prediction": result })
 
     except Exception as e:
-        print(f"❌ Error: {e}")
-        return jsonify({"error": str(e)}), 500
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+        print(f"❌ OpenAI API error: {e}")
+        return jsonify({ "error": "OpenAI API request failed" }), 500
