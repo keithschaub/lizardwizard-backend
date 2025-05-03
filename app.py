@@ -29,7 +29,7 @@ def predict():
     print("🔁 Sending image to OpenAI...")
     try:
         response = openai.chat.completions.create(
-            model="gpt-4-vision-preview",  # or "gpt-4o" if you want newer model
+            model="gpt-4o",  # or "gpt-4o" if you want newer model
             messages=[
                 {
                     "role": "user",
