@@ -20,7 +20,7 @@ def predict():
 
     try:
         response = openai.chat.completions.create(
-            model="gpt-4-vision-preview",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that identifies Lizard Wizard cards."},
                 {
