@@ -31,14 +31,24 @@ def predict():
         response = openai.chat.completions.create(
             model="gpt-4o",  # or "gpt-4o" if you want newer model
             messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        { "type": "text", "text": "What is the name and school of this Lizard Wizard card?" },
-                        { "type": "image_url", "image_url": { "url": image_url } }
-                    ]
-                }
-            ],
+  {
+    "role": "system",
+    "content": "You are an expert assistant embedded in a card-scanning application for the board game *Lizard Wizard*. When a user scans a card, your job is to analyze the visual content (text and image) and determine what type of card it is. There are four possible card types: Wizard Card, Tower Card, Familiar Card, and Spell Card. Based on the card type, extract specific information and format your response accordingly."
+  },
+  {
+    "role": "system",
+    "content": "There are exactly 7 Schools of Magic in the game:\n- Druidry\n- Enchantment\n- Necromancy\n- Sorcery\n- Alchemy\n- Thaumaturgy\n- Conjuring"
+  },
+  {
+    "role": "system",
+    "content": "Each School of Magic is represented by a distinct **circular emblem** located in the **top-right corner** of the card. These emblems are visual identifiers and should be used when text is unclear:\n\n- **Druidry**: Green circle with a **leaf**\n- **Enchantment**: White circle with a **star**\n- **Necromancy**: Black circle with a **three-pronged staff**\n- **Sorcery**: Blue circle with a **lightning bolt**\n- **Alchemy**: Purple circle with a **potion bottle**\n- **Thaumaturgy**: Orange circle with a **circular gear**\n- **Conjuring**: Red circle with a **masquerade mask**\n\nUse these visual clues to confidently identify the school when necessary."
+  },
+  {
+    "role": "system",
+    "content": "Output format by card type:\n\n1. **Wizard Card**:\n   - Identify it as a Wizard card\n   - Return its **School of Magic**\n\n2. **Tower Card**:\n   - Identify it as a Tower card\n   - Return its **School of Magic**\n\n3. **Familiar Card**:\n   - Identify it as a Familiar card\n   - Return its **School of Magic**\n\n4. **Spell Card**:\n   - Identify it as a Spell card\n   - Return the **name** of the spell (top of the card)\n   - Return the **School of Magic**\n   - Return the **text** of the spell\n\nIf any of this information is missing or illegible, say 'unreadable'. Never guess or fabricate card details."
+  }
+]
+,
             max_tokens=300
         )
         result = response.choices[0].message.content
