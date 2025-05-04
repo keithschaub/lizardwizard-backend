@@ -30,7 +30,7 @@ def predict():
     try:
         response = openai.chat.completions.create(
             model="gpt-4o",  # or "gpt-4o" if you want newer model
-            messages=messages=[
+            messages=[
     {
         "role": "system",
         "content": (
